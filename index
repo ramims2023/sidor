@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>דו"ח בוקר</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .header { text-align: right; }
+        .form-section, .report-section, .count-section { 
+            margin: 20px; 
+            padding: 20px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            background-color: #f9f9f9; 
+        }
+        .highlight { background-color: #e0ffe0; color: #ff0000; }
+        .button { background-color: green; color: white; padding: 10px; border: none; cursor: pointer; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: right; }
+        th { background-color: #d0e0ff; }
+        td { background-color: #ffffff; }
+        .form-label { display: block; margin: 10px 0 5px; }
+        .form-select, .form-input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .whatsapp-message { font-weight: bold; }
+        .warehouse-1 { background-color: #e0b0ff; } /* צבע סגול למחסן 1 */
+        .warehouse-4 { background-color: #b2fba0; } /* צבע ירוק למחסן 4 */
+        @keyframes flash { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>דו"ח בוקר</h1>
+        <p id="date-time"></p>
+    </div>
+
+    <div class="form-section">
+        <h2>שאלון</h2>
+        <form id="morning-report-form">
+            <label class="form-label" for="driver-name">שם נהג:</label>
+            <select id="driver-name" class="form-select">
+                <option>חכמת</option>
+                <option>שאול</option>
+                <option>עלי</option>
+                <option>עלא</option>
+                <option>יואב</option>
+            </select>
+            <label class="form-label" for="client-name">שם לקוח:</label>
+            <input type="text" id="client-name" class="form-input">
+            <label class="form-label" for="warehouse">מחסן:</label>
+            <select id="warehouse" class="form-select">
+                <option value="1">1</option>
+                <option value="4">4</option>
+            </select>
+            <label class="form-label" for="delivery-time">שעת אספקה:</label>
+            <select id="delivery-time" class="form-select">
+                <option>06:00</option>
+                <option>07:00</option>
+                <option>08:00</option>
+                <option>09:00</option>
+                <option>10:00</option>
+                <option>11:00</option>
+                <option>12:00</option>
+                <option>13:00</option>
+                <option>14:00</option>
+                <option>15:00</option>
+                <option>16:00</option>
+                <option>17:00</option>
+            </select>
+            <label class="form-label" for="exit">יציאה:</label>
+            <select id="exit" class="form-select">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+            </select>
+            <label class="form-label" for="transport-type">סוג הובלה:</label>
+            <select id="transport-type" class="form-select">
+                <option>הובלת משאית</option>
+                <option>הובלה מנוף</option>
+                <option>הובלת מנוף 15 מטר</option>
+                <option>עבודת מנוף</option>
+            </select>
+            <button type="button" class="button" onclick="addTask()">הוסף משימה</button>
+        </form>
+    </div>
+
+    <div class="report-section">
+        <h2>דו"ח בוקר</h2>
+        <table id="report-table">
+            <thead>
+                <tr>
+                    <th>תאריך</th>
+                    <th>נהג</th>
+                    <th>לקוח</th>
+                    <th>מחסן</th>
+                    <th>יציאה</th>
+                    <th>סוג הובלה</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- נתונים יתווספו כאן -->
+            </tbody>
+        </table>
+        <div id="summary" style="margin-top: 20px;">
+            <p>ספירת יציאות: <span id="exit-count">0</span></p>
+            <p>ספירה לפי מחסן 1: <span id="warehouse-1-count">0</span></p>
+            <p>ספירה לפי מחסן 4: <span id="warehouse-4-count">0</span></p>
+        </div>
+    </div>
+
+    <div class="count-section highlight">
+        <h2>ספירת יציאות</h2>
+        <p>כמות נהגים פעילים: <span id="active-drivers-count">0</span></p>
+        <button class="button" onclick="shareWhatsApp()">📞 שתף לווצאפ</button>
+    </div>
+
+    <script>
+        function addTask() {
+            // הוספת משימה לטבלה
+            const table = document.getElementById('report-table').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+            const warehouse = document.getElementById('warehouse').value;
+            newRow.innerHTML = `<td>${new Date().toLocaleDateString()}</td>
+                                <td>${document.getElementById('driver-name').value}</td>
+                                <td>${document.getElementById('client-name').value}</td>
+                                <td class="${warehouse === '1' ? 'warehouse-1' : 'warehouse-4'}">${warehouse}</td>
+                                <td>${document.getElementById('exit').value}</td>
+                                <td>${document.getElementById('transport-type').value}</td>`;
+            updateCounts();
+        }
+
+        function updateCounts() {
+            // עדכון ספירות
+            const count = document.getElementById('report-table').getElementsByTagName('tbody')[0].rows.length;
+            document.getElementById('active-drivers-count').innerText = count;
+
+            let exitCount = 0;
+            let warehouse1Count = 0;
+            let warehouse4Count = 0;
+
+            const rows = document.getElementById('report-table').getElementsByTagName('tbody')[0].rows;
+            for (let i = 0; i < rows.length; i++) {
+                exitCount++;
+                const warehouseCell = rows[i].cells[3].innerText;
+                if (warehouseCell === '1') {
+                    warehouse1Count++;
+                } else if (warehouseCell === '4') {
+                    warehouse4Count++;
+                }
+            }
+
+            document.getElementById('exit-count').innerText = exitCount;
+            document.getElementById('warehouse-1-count').innerText = warehouse1Count;
+            document.getElementById('warehouse-4-count').innerText = warehouse4Count;
+        }
+
+        function shareWhatsApp() {
+            // שיתוף לווצאפ
+            const rows = document.getElementById('report-table').getElementsByTagName('tbody')[0].rows;
+            let message = '*דו"ח בוקר:*\n';
+            let exitCount = 0;
+            let warehouse1Count = 0;
+            let warehouse4Count = 0;
+
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].cells;
+                message += `📅 תאריך: ${cells[0].innerText}\n`;
+                message += `🚗 נהג: ${cells[1].innerText}\n`;
+                message += `👤 לקוח: ${cells[2].innerText}\n`;
+                message += `🏭 מחסן: ${cells[3].innerText}\n`;
+                message += `🚪 יציאה: ${cells[4].innerText}\n`;
+                message += `🚚 סוג הובלה: ${cells[5].innerText}\n\n`;
+                exitCount++;
+                if (cells[3].innerText === '1') {
+                    warehouse1Count++;
+                } else if (cells[3].innerText === '4') {
+                    warehouse4Count++;
+                }
+            }
+
+            message += `📊 ספירת יציאות: ${exitCount}\n`;
+            message += `🏭 ספירה לפי מחסן 1: ${warehouse1Count}\n`;
+            message += `🏭 ספירה לפי מחסן 4: ${warehouse4Count}\n`;
+
+            const phoneNumber = '972508860896';
+            window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`);
+        }
+
+        // הצגת תאריך ושעה אונליין
+        setInterval(() => {
+            document.getElementById('date-time').innerText = new Date().toLocaleString();
+        }, 1000);
+    </script>
+</body>
+</html>
